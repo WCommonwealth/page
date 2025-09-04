@@ -1,3 +1,4 @@
+/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -207,7 +208,7 @@ p {
     font-size: 1.5rem;
 }
 
-/* Wallet Section - Placeholder for Real-time Data */
+/* Wallet Section */
 #wallet .net-worth {
     font-size: 2rem;
     color: #ffd700;

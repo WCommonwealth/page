@@ -1,81 +1,127 @@
-// Hamburger Menu Toggle
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
-
-hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navLinks.classList.toggle('active');
-});
-
-// Navbar Scroll Effect
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
-});
-
-// Section Fade-In on Scroll
-const sections = document.querySelectorAll('section');
-const observerOptions = {
-    threshold: 0.1
+// Wallet Net Worth
+const holdings = {
+  bitcoin: 0.5,
+  ethereum: 2,
+  solana: 50,
+  dogecoin: 1000,
+  litecoin: 10
 };
 
-const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
-    });
-}, observerOptions);
-
-sections.forEach(section => {
-    sectionObserver.observe(section);
-});
-
-// Background Dots and Lines Animation
-const bgAnimation = document.getElementById('bg-animation');
-const numDots = 50;
-
-for (let i = 0; i < numDots; i++) {
-    const dot = document.createElement('div');
-    dot.classList.add('dot');
-    dot.style.left = `${Math.random() * 100}%`;
-    dot.style.top = `${Math.random() * 100}%`;
-    dot.style.animationDelay = `${Math.random() * 5}s`;
-    bgAnimation.appendChild(dot);
-
-    // Add connecting lines occasionally (simplified logic)
-    if (i % 5 === 0 && i > 0) {
-        const line = document.createElement('div');
-        line.classList.add('line');
-        const prevDot = bgAnimation.children[i - 1];
-        const dx = parseFloat(dot.style.left) - parseFloat(prevDot.style.left);
-        const dy = parseFloat(dot.style.top) - parseFloat(prevDot.style.top);
-        const length = Math.sqrt(dx * dx + dy * dy) * 100; // Approximate length in %
-        line.style.left = prevDot.style.left;
-        line.style.top = prevDot.style.top;
-        line.style.width = `${length}%`;
-        line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
-        line.style.animationDelay = `${Math.random() * 5}s`;
-        bgAnimation.appendChild(line);
+async function updateWallet() {
+  try {
+    const response = await axios.get(
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,dogecoin,litecoin&vs_currencies=usd"
+    );
+    let total = 0;
+    const tableBody = document.getElementById("wallet-table");
+    tableBody.innerHTML = "";
+    for (const [coin, amount] of Object.entries(holdings)) {
+      const price = response.data[coin]?.usd || 0;
+      const value = amount * price;
+      total += value;
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${coin.charAt(0).toUpperCase() + coin.slice(1)}</td><td>${amount}</td><td>$${value.toFixed(2)}</td>`;
+      row.addEventListener("mouseover", () => {
+        gsap.to(row, { backgroundColor: "rgba(255, 215, 0, 0.2)", duration: 0.3 });
+      });
+      row.addEventListener("mouseout", () => {
+        gsap.to(row, { backgroundColor: "transparent", duration: 0.3 });
+      });
+      tableBody.appendChild(row);
     }
+    let worth = { value: 0 };
+    gsap.to(worth, {
+      value: total,
+      duration: 1,
+      snap: "value",
+      onUpdate: () => {
+        document.getElementById("net-worth").textContent = worth.value.toFixed(2);
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching wallet data:", error);
+    document.getElementById("net-worth").textContent = "Error";
+  }
 }
 
-// Placeholder for Real-time Wallet Net Worth (Demo)
-const netWorthElement = document.querySelector('.net-worth');
-setTimeout(() => {
-    netWorthElement.textContent = 'Net Worth: $XXXXXX (Demo)';
-}, 2000);
+// Animations
+function initAnimations() {
+  // GSAP Animations
+  gsap.from(".home-content h1", { duration: 1.5, y: 100, opacity: 0, ease: "elastic.out(1, 0.5)" });
+  gsap.from(".home-content .slogan", { duration: 1.5, y: 100, opacity: 0, delay: 0.5, ease: "power2.out" });
+  gsap.from(".button-group", { duration: 1.5, y: 100, opacity: 0, delay: 1, ease: "back.out(1.7)" });
+  gsap.from(".subtext", { duration: 1.5, y: 100, opacity: 0, delay: 1.5, ease: "power2.out" });
 
-// For actual integration, uncomment and customize:
-// async function fetchNetWorth() {
-//     // Example: Fetch crypto prices from a public API like CoinGecko
-//     // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd');
-//     // const data = await response.json();
-//     // Calculate based on your holdings, e.g., total = holdings.btc * data.bitcoin.usd + ...
-//     // netWorthElement.textContent = `Net Worth: $${total.toFixed(2)}`;
-// }
-// fetchNetWorth();
+  gsap.utils.toArray("section").forEach((section, index) => {
+    gsap.from(section, {
+      scrollTrigger: {
+        trigger: section,
+        start: "top 80%",
+        toggleActions: "play none none reverse"
+      },
+      y: 50,
+      opacity: 0,
+      duration: 1,
+      ease: "power2.out",
+      delay: index * 0.2
+    });
+  });
+
+  // Particles.js (Glowing Triangles and Orbits)
+  particlesJS("particles-js", {
+    particles: {
+      number: { value: 50, density: { enable: true, value_area: 800 } },
+      color: { value: ["#ffd700", "#800080", "#00b7eb"] },
+      shape: { type: "triangle", polygon: { nb_sides: 3 } },
+      opacity: { value: 0.6, random: true },
+      size: { value: 6, random: true },
+      line_linked: { enable: true, distance: 150, color: "#ffd700", opacity: 0.4, width: 1 },
+      move: { enable: true, speed: 4, direction: "none", random: true, straight: false, out_mode: "out" },
+      rotate: { value: 0, random: true, direction: "clockwise", animation: { enable: true, speed: 5, sync: false } }
+    },
+    interactivity: {
+      detect_on: "canvas",
+      events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" } },
+      modes: { repulse: { distance: 200 }, push: { particles_nb: 4 } }
+    }
+  });
+}
+
+// Hamburger Menu
+document.querySelector(".hamburger").addEventListener("click", () => {
+  const navLinks = document.querySelector(".nav-links");
+  if (navLinks.classList.contains("show")) {
+    gsap.to(navLinks, { 
+      x: "-100%", 
+      duration: 0.5, 
+      ease: "power2.in", 
+      onComplete: () => navLinks.classList.remove("show") 
+    });
+  } else {
+    navLinks.classList.add("show");
+    gsap.fromTo(navLinks, { x: "-100%" }, { x: "0%", duration: 0.5, ease: "power2.out" });
+  }
+});
+
+// Smooth Scrolling and Button Interactions
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener("click", (e) => {
+    e.preventDefault();
+    const target = document.querySelector(anchor.getAttribute("href"));
+    gsap.to(window, { duration: 1, scrollTo: { y: target.offsetTop - 80, autoKill: false }, ease: "power2.inOut" });
+  });
+});
+
+document.querySelectorAll(".cta-button").forEach(button => {
+  button.addEventListener("mouseover", () => {
+    gsap.to(button, { scale: 1.1, boxShadow: "0 0 25px #ffd700", duration: 0.3 });
+  });
+  button.addEventListener("mouseout", () => {
+    gsap.to(button, { scale: 1, boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)", duration: 0.3 });
+  });
+});
+
+// Initialize
+initAnimations();
+updateWallet();
+setInterval(updateWallet, 60000); // Update every minute

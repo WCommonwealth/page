@@ -46,28 +46,54 @@ async function updateWallet() {
 
 // Animations
 function initAnimations() {
-  // GSAP Animations
-  gsap.from(".home-content h1", { duration: 1.5, y: 100, opacity: 0, ease: "elastic.out(1, 0.5)" });
-  gsap.from(".home-content .slogan", { duration: 1.5, y: 100, opacity: 0, delay: 0.5, ease: "power2.out" });
-  gsap.from(".button-group", { duration: 1.5, y: 100, opacity: 0, delay: 1, ease: "back.out(1.7)" });
-  gsap.from(".subtext", { duration: 1.5, y: 100, opacity: 0, delay: 1.5, ease: "power2.out" });
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-  gsap.utils.toArray("section").forEach((section, index) => {
-    gsap.from(section, {
-      scrollTrigger: {
-        trigger: section,
-        start: "top 80%",
-        toggleActions: "play none none reverse"
-      },
-      y: 50,
-      opacity: 0,
-      duration: 1,
-      ease: "power2.out",
-      delay: index * 0.2
-    });
+  // Home section (on load)
+  gsap.fromTo("#home", 
+    { y: 50, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1, ease: "power2.out" }
+  );
+
+  gsap.fromTo(".home-content h1", 
+    { y: 100, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1.5, ease: "elastic.out(1, 0.5)" }
+  );
+
+  gsap.fromTo(".home-content .slogan", 
+    { y: 100, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1.5, delay: 0.5, ease: "power2.out" }
+  );
+
+  gsap.fromTo(".button-group", 
+    { y: 100, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1.5, delay: 1, ease: "back.out(1.7)" }
+  );
+
+  gsap.fromTo(".subtext", 
+    { y: 100, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1.5, delay: 1.5, ease: "power2.out" }
+  );
+
+  // Other sections with ScrollTrigger
+  gsap.utils.toArray("section:not(#home)").forEach((section, index) => {
+    gsap.fromTo(section, 
+      { y: 50, opacity: 0 }, 
+      {
+        y: 0, 
+        opacity: 1, 
+        duration: 1, 
+        ease: "power2.out", 
+        delay: index * 0.2,
+        scrollTrigger: {
+          trigger: section,
+          start: "top 80%",
+          toggleActions: "play none none none"
+        }
+      }
+    );
   });
 
-  // Particles.js (Glowing Triangles and Orbits)
+  // Particles.js
   particlesJS("particles-js", {
     particles: {
       number: { value: 50, density: { enable: true, value_area: 800 } },
@@ -76,8 +102,7 @@ function initAnimations() {
       opacity: { value: 0.6, random: true },
       size: { value: 6, random: true },
       line_linked: { enable: true, distance: 150, color: "#ffd700", opacity: 0.4, width: 1 },
-      move: { enable: true, speed: 4, direction: "none", random: true, straight: false, out_mode: "out" },
-      rotate: { value: 0, random: true, direction: "clockwise", animation: { enable: true, speed: 5, sync: false } }
+      move: { enable: true, speed: 4, direction: "none", random: true, straight: false, out_mode: "out" }
     },
     interactivity: {
       detect_on: "canvas",
@@ -85,6 +110,8 @@ function initAnimations() {
       modes: { repulse: { distance: 200 }, push: { particles_nb: 4 } }
     }
   });
+
+  ScrollTrigger.refresh();
 }
 
 // Hamburger Menu
@@ -103,7 +130,7 @@ document.querySelector(".hamburger").addEventListener("click", () => {
   }
 });
 
-// Smooth Scrolling and Button Interactions
+// Smooth Scrolling
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener("click", (e) => {
     e.preventDefault();
@@ -112,6 +139,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
+// Button hover effects
 document.querySelectorAll(".cta-button").forEach(button => {
   button.addEventListener("mouseover", () => {
     gsap.to(button, { scale: 1.1, boxShadow: "0 0 25px #ffd700", duration: 0.3 });
@@ -121,7 +149,9 @@ document.querySelectorAll(".cta-button").forEach(button => {
   });
 });
 
-// Initialize
-initAnimations();
-updateWallet();
-setInterval(updateWallet, 60000); // Update every minute
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  initAnimations();
+  updateWallet();
+  setInterval(updateWallet, 60000);
+});
